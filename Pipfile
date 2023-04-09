@@ -9,6 +9,8 @@ requests = "*"
 black = "*"
 matplotlib = "*"
 graphviz = "*"
+networkx = "*"
+scipy = "*"
 
 [dev-packages]
 

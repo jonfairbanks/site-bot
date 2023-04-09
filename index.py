@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from queue import Queue
 
 from file import save_json
-from graphs import generate_history_graph, generate_waterfall
+from graphs import generate_latency_graph, visualize_urls
 from scrape import scrape_url
 
 
@@ -92,10 +92,13 @@ def main():
     save_json(SITE_LINKS, "SITE_LINKS")
 
     # Save history graph
-    generate_history_graph(HISTORY, "HISTORY_GRAPH")
+    generate_latency_graph(HISTORY, "HISTORY_GRAPH")
 
-    # Save waterfall diagram
-    generate_waterfall(HISTORY, "HISTORY_WATERFALL")
+    # Save diagram
+    try:
+        visualize_urls(SITE_LINKS, "HISTORY_WATERFALL")
+    except Exception as e:
+        print(e)
 
     # Stop timer & print totals
     end_time = time.time()

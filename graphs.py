@@ -1,28 +1,30 @@
 import matplotlib.pyplot as plt
-from graphviz import Digraph
+import networkx as nx
+import numpy as np
+
 
 def shorten_url(url):
     """Shorten a URL by dropping the middle."""
-    if len(url) <= 20:
+    if len(url) <= 30:
         return url
-    parts = url.split('/')
+    parts = url.split("/")
     if len(parts) <= 3:
         return url
     return f"{parts[0]}/{parts[1]}/.../{parts[-1]}"
 
 
-def generate_history_graph(HISTORY, filename):
+def generate_latency_graph(HISTORY, filename):
     try:
         # Save history graph
         urls = [shorten_url(h[0]) for h in HISTORY]
         times = [h[1] for h in HISTORY]
-        img_length = len(HISTORY) * 0.25
+        img_length = len(HISTORY) + 1
         fig, ax = plt.subplots(figsize=(25, img_length))
-        fig.subplots_adjust(top=0.98, bottom=0.025)
+        # fig.subplots_adjust(top=0.98, bottom=0.025)
         ax.barh(urls, times, align="center")
-        ax.set_xlabel("Time (s)")
-        ax.set_ylabel("URLs")
-        ax.set_title("Request Time History")
+        ax.set_xlabel("Latency (sec)")
+        ax.set_ylabel("Outbound URLs")
+        ax.set_title("Outbound Request Latency")
 
         # Reduce font size and rotate Y-axis tick labels
         ax.tick_params(axis="y", labelsize=8, rotation=45)
@@ -35,27 +37,44 @@ def generate_history_graph(HISTORY, filename):
     return
 
 
-def generate_waterfall(HISTORY, filename):
-    graph = Digraph(format="png")
+def visualize_urls(data, filename):
+    G = nx.DiGraph()
+    for source, targets in data.items():
+        G.add_node(source)
+        for target in targets:
+            G.add_edge(source, target)
 
-    # Add nodes to graph
-    try:
-        for i, (url, _) in enumerate(HISTORY):
-            graph.node(str(i), url)
-    except:
-        print("Add nodes failed")
+    pos = nx.spring_layout(G, k=0.3)
 
-    # Add edges to graph
-    try:
-        for i in range(1, len(HISTORY)):
-            graph.edge(str(i - 1), str(i))
-    except:
-        print("Add edges failed")
+    fig, ax = plt.subplots(figsize=(50, 50))
+    nx.draw_networkx_nodes(G, pos, ax=ax, node_size=500)
+    nx.draw_networkx_edges(G, pos, ax=ax, width=1, edge_color="gray")
+    nx.draw_networkx_labels(G, pos, ax=ax, font_size=10)
+    ax.set_axis_off()
 
-    # Render the graph
-    try:
-        graph.render(str(f"{filename}"), view=False, cleanup=True)
-        print(f"** {filename}.png saved! **")
-    except:
-        print("Rendering waterfall failed")
-    return
+    filename = f"{filename}.png"
+    plt.savefig(filename, bbox_inches="tight")
+    print(f"** {filename} saved! **")
+
+
+# def visualize_urls(data, ego_node, filename):
+#     G = nx.Graph()
+#     G.add_node(ego_node)
+#     for source, targets in data.items():
+#         if source == ego_node:
+#             for target in targets:
+#                 G.add_edge(source, target)
+#         elif ego_node in targets:
+#             G.add_edge(source, ego_node)
+
+#     pos = nx.spring_layout(G, k=0.3)
+
+#     fig, ax = plt.subplots(figsize=(50, 50))
+#     nx.draw_networkx_nodes(G, pos, ax=ax, node_size=500)
+#     nx.draw_networkx_edges(G, pos, ax=ax, width=1, edge_color="gray")
+#     nx.draw_networkx_labels(G, pos, ax=ax, font_size=10)
+#     ax.set_axis_off()
+
+#     filename = f"{filename}.png"
+#     plt.savefig(filename, bbox_inches="tight")
+#     print(f"** {filename} saved! **")
