@@ -1,6 +1,6 @@
 # site-bot
  
-![sample.png](site-bot)
+![site-bot](sample.png)
 
 Scrape a website and it's outbound links
 - Visualize the flow of links
